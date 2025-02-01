@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/devcontainers/cpp:1-debian-12
 
-RUN apt update && apt upgrade \
-  apt-get update && apt-get install -y --no-install-recommends \
+RUN apt update && apt upgrade && apt-get update && apt-get install -y --no-install-recommends \
   git \
   zsh \
   wget \
