@@ -3,29 +3,31 @@
 set -euo pipefail  # Exit on error, unset variables, and pipe failures
 
 # Update and upgrade system packages
-sudo apt update -y && sudo apt upgrade -y
+apt update -y && apt upgrade -y
 
 # Install required packages
-sudo apt install -y \
+apt install -y \
     git zsh wget curl unzip gdb clang ninja-build build-essential \
-    lld clangd g++ python3 pipx 
+    lld clangd g++ python3 pipx neovim
 
 # Add Kitware repository for newer CMake
-sudo mkdir -p /usr/share/keyrings
+mkdir -p /usr/share/keyrings
 curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
-    gpg --dearmor | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg > /dev/null
+    gpg --dearmor | tee /usr/share/keyrings/kitware-archive-keyring.gpg > /dev/null
 echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | \
-    sudo tee /etc/apt/sources.list.d/kitware.list > /dev/null
+    tee /etc/apt/sources.list.d/kitware.list > /dev/null
 
 # Install CMake
-sudo apt update -y
-sudo apt install -y cmake
+apt update -y
+apt install -y cmake
 
 # Cleanup unused packages
-sudo apt autoremove -y
+apt autoremove -y
 
 # Install Oh My Zsh
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+export RUNZSH=no  # Prevents switching to Zsh after install
+export CHSH=no    # Skips changing the default shell
+sh -c "$(wget -qO- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended
 
 # Ensure plugin directories exist
 mkdir -p ~/.oh-my-zsh/custom/plugins
@@ -46,7 +48,7 @@ rm -rf nerd-fonts  # Cleanup
 
 # Install Oh My Posh
 curl -fsSL https://ohmyposh.dev/install.sh | bash
-chmod +x ~/.oh-my-posh/bin/oh-my-posh
+chmod +x ~/.local/bin/oh-my-posh
 
 # Install Powerlevel10k theme
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
@@ -54,15 +56,14 @@ git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-
 # Ensure pipx is in the path
 pipx ensurepath
 
-# Copy configuration files safely
+# Copy .zshrc
 cp -f .zshrc ~/.zshrc
-cp -f .p10k.zsh ~/.p10k.zsh
 
 # Install Conan package manager
 pipx install conan
 
-# Change default shell to Zsh (non-interactively)
-echo "$USER" | sudo chsh -s /bin/zsh
+# Change default shell to Zsh
+chsh -s $(which zsh)
 
-# Start Zsh
+# Start Zsh and start Powerlinke10k configuration
 exec zsh
