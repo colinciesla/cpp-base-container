@@ -1,45 +1,63 @@
 FROM mcr.microsoft.com/devcontainers/cpp:1-debian-12
 
-RUN <<EOF  
-  sudo apt update -y
-  sudo apt upgrade
-  sudo apt-get update -y
-  sudo apt-get install -y --no-install-recommends git zsh wget unzip gdb clang ninja-build build-essential lld clangd g++ python3 pipx
-  rm -rf /var/lib/apt/lists/*
-  apt purge --auto-remove cmake
-  wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg | tee /dev/null
-  echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list | tee /dev/null
-  sudo apt update
-  sudo apt install -y cmake
-  wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O - | sh
-  chsh -s /bin/zsh
-  zsh
-  git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-  wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | zsh
-  git clone --depth 1 https://github.com/ryanoasis/nerd-fonts.git
-  ./nerd-fonts/install.sh Hack
-  ./nerd-fonts/install.sh FiraCode
-  curl -s https://ohmyposh.dev/install.sh | bash -s
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-  pipx ensurepath
-EOF
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NVM_DIR="/root/.nvm"
 
-# Copy zsh configuration files
-COPY .zshrc /home/colin/.zshrc
-COPY .p10k.zsh /home/colin/.p10k.zsh
+# Update & Install system packages
+RUN apt update -y && apt upgrade -y && \
+    apt install -y --no-install-recommends \
+    git zsh wget curl unzip gdb clang ninja-build build-essential \
+    lld clangd g++ python3 pipx ca-certificates gnupg software-properties-common && \
+    rm -rf /var/lib/apt/lists/*
 
-# Reload zsh and install conan
-RUN <<EOF
-  zsh -l
-  pipx install conan
-EOF
+# Add Kitware repository for latest CMake
+RUN mkdir -p /usr/share/keyrings && \
+    curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
+    gpg --dearmor | tee /usr/share/keyrings/kitware-archive-keyring.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main" | \
+    tee /etc/apt/sources.list.d/kitware.list > /dev/null && \
+    apt update -y && apt install -y cmake && apt autoremove -y
 
-# Set Clang as the default compiler
-ENV CC=clang
-ENV CXX=clang++
+# Install Oh My Zsh
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || true
+
+# Clone necessary Zsh plugins
+RUN mkdir -p ~/.oh-my-zsh/custom/plugins && \
+    git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+
+# Install NVM (Node Version Manager) & ensure it's available
+RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && \
+    . "$NVM_DIR/nvm.sh"
+
+# Install Nerd Fonts
+RUN git clone --depth 1 https://github.com/ryanoasis/nerd-fonts.git && \
+    ./nerd-fonts/install.sh Hack FiraCode && \
+    rm -rf nerd-fonts
+
+# Install Oh My Posh
+RUN curl -fsSL https://ohmyposh.dev/install.sh | bash && \
+    chmod +x ~/.oh-my-posh/bin/oh-my-posh
+
+# Install Powerlevel10k theme
+RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-/root/.oh-my-zsh/custom}/themes/powerlevel10k"
+
+# Ensure pipx is in the path
+RUN pipx ensurepath
+
+# Install Conan package manager
+RUN pipx install conan
+
+# Set Zsh as default shell
+SHELL ["/bin/zsh", "-c"]
+
+# Copy configuration files
+COPY .zshrc /root/.zshrc
+COPY .p10k.zsh /root/.p10k.zsh
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /root
 
-CMD ["/bin/bash"]
+# Start container in Zsh
+CMD ["zsh"]
