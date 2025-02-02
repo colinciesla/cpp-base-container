@@ -1,51 +1,54 @@
 #==============================================================================
-# Powerline10k configuration
+# Powerlevel10k configuration
 #==============================================================================
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+# Enable Powerlevel10k instant prompt. This should remain near the top.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 #==============================================================================
-# zsh configuration
+# Oh My Zsh configuration
 #==============================================================================
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="powerlevel10k/powerlevel10k"
-zstyle ':omz:update' mode auto      # update automatically without asking
-# COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-plugins=(git colored-man-pages command-not-found zsh-syntax-highlighting zsh-autosuggestions)
-source $ZSH/oh-my-zsh.sh
-# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
-# DISABLE_MAGIC_FUNCTIONS="true"
+zstyle ':omz:update' mode auto  # Auto-update Oh My Zsh
+
+# Load plugins
+plugins=(
+  git
+  colored-man-pages
+  command-not-found
+  zsh-syntax-highlighting
+  zsh-autosuggestions
+)
+source "$ZSH/oh-my-zsh.sh"
 
 #==============================================================================
 # User configuration
 #==============================================================================
 # Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='nvim'
+export EDITOR="${SSH_CONNECTION:+vim}"
+export EDITOR="${EDITOR:-nvim}"  # Default to nvim if not in SSH
+
+# nvm configuration
+export NVM_DIR="$HOME/.nvm"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  source "$NVM_DIR/nvm.sh"
+  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 fi
 
-# nvm config
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
+# Configure zsh-autosuggestions
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#663399,standout"
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# Load Powerlevel10k configuration
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 #==============================================================================
-# Export variables
+# Environment Variables
 #==============================================================================
-export PATH=$PATH:/home/colin/.local/bin
+export PATH="$HOME/.local/bin:$PATH"
 export CC=clang
-export CCX=clang++
+export CXX=clang++
 
 #==============================================================================
 # Aliases
