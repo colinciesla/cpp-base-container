@@ -40,9 +40,6 @@ fi
 # Configure zsh-autosuggestions
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#663399,standout"
 
-# Load Powerlevel10k configuration
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
-
 #==============================================================================
 # Environment Variables
 #==============================================================================
@@ -55,3 +52,7 @@ export CXX=clang++
 #==============================================================================
 alias vim=nvim
 alias ls="ls -la --color=auto"
+
+# Load Powerlevel10k configuration
+source ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
