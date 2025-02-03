@@ -8,7 +8,7 @@ apt update -y && apt upgrade -y
 # Install required packages
 apt install -y \
     git zsh wget curl unzip gdb clang ninja-build build-essential \
-    lld clangd g++ python3 pipx neovim
+    lld clangd g++ libc++-dev libc++abi-dev python3 pipx neovim
 
 # Add Kitware repository for newer CMake
 mkdir -p /usr/share/keyrings
